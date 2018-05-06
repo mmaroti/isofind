@@ -25,8 +25,9 @@ Solver::Solver()
     , solvable(true)
 {
     solver = new Minisat::SimpSolver();
-    trueLiteral = addLiteral();
-    addClause(trueLiteral);
+    TRUE = addLiteral();
+    addClause(TRUE);
+    FALSE = negate(FALSE);
 }
 
 Solver::~Solver()
@@ -42,8 +43,9 @@ void Solver::reset()
     if (solver != NULL) {
         delete solver;
         solver = new Minisat::SimpSolver();
-        trueLiteral = addLiteral();
-        addClause(trueLiteral);
+        TRUE = addLiteral();
+        addClause(TRUE);
+        FALSE = negate(FALSE);
     }
 }
 
@@ -100,4 +102,96 @@ bool Solver::getValue(int literal) const
 
     } else
         return false;
+}
+
+int Solver::logicAnd(int literal1, int literal2)
+{
+    if (literal1 == FALSE || literal2 == FALSE)
+        return FALSE;
+    else if (literal1 == TRUE)
+        return literal2;
+    else if (literal2 == TRUE)
+        return literal1;
+
+    int literal3 = addLiteral();
+    addClause(literal1, negate(literal3));
+    addClause(literal2, negate(literal3));
+    addClause(negate(literal1), negate(literal2), literal3);
+    return literal3;
+}
+
+int Solver::logicOr(int literal1, int literal2)
+{
+    if (literal1 == TRUE || literal2 == TRUE)
+        return TRUE;
+    else if (literal1 == FALSE)
+        return literal2;
+    else if (literal2 == FALSE)
+        return literal1;
+
+    int literal3 = addLiteral();
+    addClause(negate(literal1), literal3);
+    addClause(negate(literal2), literal3);
+    addClause(literal1, literal2, negate(literal3));
+    return literal3;
+}
+
+int Solver::logicAll(const std::vector<int>& literals)
+{
+    unsigned int trueCount = 0;
+    int lastNotTrue = TRUE;
+    for (unsigned int i = 0; i < literals.size(); i++) {
+        if (literals[i] == FALSE)
+            return FALSE;
+        else if (literals[i] == TRUE)
+            trueCount += 1;
+        else
+            lastNotTrue = literals[i];
+    }
+
+    if (trueCount + 1 >= literals.size())
+        return lastNotTrue;
+
+    int result = addLiteral();
+    int negated = negate(result);
+    std::vector<int> clause;
+    for (unsigned int i = 0; i < literals.size(); i++) {
+        if (literals[i] != TRUE) {
+            addClause(literals[i], negated);
+            clause.push_back(negate(literals[i]));
+        }
+    }
+    clause.push_back(result);
+    addClause(clause);
+    return result;
+}
+
+int Solver::logicAny(const std::vector<int>& literals)
+{
+    unsigned int falseCount = 0;
+    int lastNotFalse = FALSE;
+    for (unsigned int i = 0; i < literals.size(); i++) {
+        if (literals[i] == TRUE)
+            return TRUE;
+        else if (literals[i] == FALSE)
+            falseCount += 1;
+        else
+            lastNotFalse = literals[i];
+    }
+
+    if (falseCount + 1 >= literals.size())
+        return lastNotFalse;
+
+    int result = addLiteral();
+    int negated = negate(result);
+    std::vector<int> clause;
+    for (unsigned int i = 0; i < literals.size(); i++) {
+        if (literals[i] != FALSE) {
+            addClause(negate(literals[i]), result);
+            clause.push_back(literals[i]);
+        }
+    }
+    clause.push_back(negated);
+    addClause(clause);
+    return result;
 }

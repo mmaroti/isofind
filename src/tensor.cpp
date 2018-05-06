@@ -54,14 +54,11 @@ Tensor<int> getVariableTenor(Solver& solver, unsigned int size, unsigned int ran
 
 Tensor<int> getConstantTensor(const Solver& solver, Tensor<bool> tensor)
 {
-    int a = solver.getTrue();
-    int b = solver.getFalse();
-
     Tensor<int> tensor2(tensor.size, tensor.rank);
 
     unsigned int n = tensor.getLength();
     for (unsigned int i = 0; i < n; i++)
-        tensor2.set(i, tensor.get(i) ? a : b);
+        tensor2.set(i, solver.logicLift(tensor.get(i)));
 
     return tensor2;
 }
