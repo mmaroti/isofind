@@ -31,14 +31,18 @@ class Solver {
 private:
     Minisat::SimpSolver* solver;
     bool solvable; // for immediate failures when adding clauses
+    int trueLiteral;
 
 public:
     Solver();
     ~Solver();
     void reset();
 
+    int getTrue() const { return trueLiteral; }
+    int getFalse() const { return negate(trueLiteral); }
+
     int addLiteral();
-    int negate(int literal);
+    int negate(int literal) const;
     void addClause(int literal1);
     void addClause(int literal1, int literal2);
     void addClause(int literal1, int literal2, int literal3);
@@ -46,7 +50,7 @@ public:
 
     void simplify();
     bool solve();
-    bool getValue(int literal);
+    bool getValue(int literal) const;
 };
 
 #endif // __SOLVER_HPP__

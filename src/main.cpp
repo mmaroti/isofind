@@ -19,6 +19,7 @@
 
 #include "solver.hpp"
 #include <iostream>
+#include "tensor.hpp"
 
 int main()
 {

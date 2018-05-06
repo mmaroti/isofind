@@ -25,6 +25,8 @@ Solver::Solver()
     , solvable(true)
 {
     solver = new Minisat::SimpSolver();
+    trueLiteral = addLiteral();
+    addClause(trueLiteral);
 }
 
 Solver::~Solver()
@@ -40,6 +42,8 @@ void Solver::reset()
     if (solver != NULL) {
         delete solver;
         solver = new Minisat::SimpSolver();
+        trueLiteral = addLiteral();
+        addClause(trueLiteral);
     }
 }
 
@@ -48,7 +52,7 @@ int Solver::addLiteral()
     return Minisat::toInt(Minisat::mkLit(solver->newVar(), false));
 }
 
-int Solver::negate(int literal)
+int Solver::negate(int literal) const
 {
     return Minisat::toInt(~Minisat::toLit(literal));
 }
@@ -88,7 +92,7 @@ bool Solver::solve()
     return solvable;
 }
 
-bool Solver::getValue(int literal)
+bool Solver::getValue(int literal) const
 {
     if (solvable) {
         int v = Minisat::toInt(solver->modelValue(Minisat::toLit(literal)));
