@@ -17,17 +17,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "solver.hpp"
-#include <iostream>
+#ifndef __SOLVER_HPP__
+#define __SOLVER_HPP__
 
-int main()
-{
-    Solver solver;
-    int a = solver.addLiteral();
-    int b = solver.addLiteral();
-    solver.addClause(a, b);
-    solver.addClause(solver.negate(a));
-    std::cout << solver.solve() << " " << solver.getValue(a) << " " << solver.getValue(b) << std::endl;
-    solver.addClause(solver.negate(b));
-    std::cout << solver.solve() << " " << solver.getValue(a) << " " << solver.getValue(b) << std::endl;
+#include <vector>
+
+// forward declaration
+namespace Minisat {
+class SimpSolver;
 }
+
+class Solver {
+private:
+    Minisat::SimpSolver* solver;
+    bool solvable; // for immediate failures when adding clauses
+
+public:
+    Solver();
+    ~Solver();
+    void reset();
+
+    int addLiteral();
+    int negate(int literal);
+    void addClause(int literal1);
+    void addClause(int literal1, int literal2);
+    void addClause(int literal1, int literal2, int literal3);
+    void addClause(const std::vector<int>& lits);
+
+    void simplify();
+    bool solve();
+    bool getValue(int literal);
+};
+
+#endif // __SOLVER_HPP__
